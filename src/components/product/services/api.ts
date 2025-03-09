@@ -27,7 +27,7 @@ export const updateProduct = async (formData: FormData, id: number) => {
   }
 
   return fetch(`http://localhost:8000/api/v1/products/${id}`, {
-    method: "PUT",
+    method: "PATCH",
     body: formData,
   });
 };

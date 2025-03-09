@@ -1,12 +1,13 @@
 "use client";
 
 import { useProductStore } from "../../data/product";
-import { useCartStore } from "../../carts/carStore";
 import { useState } from "react";
+import { useCart } from "../../carts/cartContext";
+import Image from "next/image";
 
 export default function ProductReview() {
   const product = useProductStore((state) => state.selectedProduct);
-  const addToCart = useCartStore((state) => state.addToCart);
+  const { addToCart, cartItems } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
 
@@ -31,14 +32,25 @@ export default function ProductReview() {
   }
 
   const handleAddToCart = async () => {
-    if (quantity < 1) return;
+    if (quantity < 1 || quantity > product.stock) {
+      alert("Invalid quantity!");
+      return;
+    }
 
     setLoading(true);
 
+    // ✅ Check if the product is already in the cart
+    const existingItem = cartItems.find((item) => item.id === product.id);
+    if (existingItem) {
+      alert("This item is already in the cart!");
+      setLoading(false);
+      return;
+    }
+
     const cartItem = {
-      id: product.id, 
+      id: product.id,
       name: product.name,
-      price: product.price,
+      price: product.price * quantity, // ✅ Total price calculation
       quantity,
       color: product.color,
       size: product.size,
@@ -46,33 +58,25 @@ export default function ProductReview() {
     };
 
     try {
-      // Save to local store (fix: use correct id format)
+      // ✅ Save to local cart
       addToCart(cartItem);
 
-      // Send request to Django backend
-      const response = await fetch("http://localhost:8000/api/v1/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json", // ✅ Ensure JSON request
-          Accept: "application/json", // ✅ Ensure response is JSON
-        },
-        body: JSON.stringify({
-          product_id: product.id, // Keep "product_id" for Django
-          name: product.name,
-          price: product.price,
-          quantity,
-          color: product.color,
-          size: product.size,
-          image: product.image,
-        }),
-      });
+      // ✅ Update stock in the backend
+      const stockUpdateResponse = await fetch(
+        `http://localhost:8000/api/v1/products/${product.id}/reduce_stock/`,
+        {
+          method: "PATCH", // ✅ Use PATCH to update stock
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ stock: quantity }), // Reduce stock
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error("Failed to add to cart");
+      if (!stockUpdateResponse.ok) {
+        throw new Error("Failed to update stock");
       }
-
-      const data = await response.json();
-      console.log("Cart response:", data);
 
       alert("Product added to cart successfully!");
     } catch (error) {
@@ -85,15 +89,16 @@ export default function ProductReview() {
 
   return (
     <>
-      <section className=" bg-gray-100 flex justify-center items-center">
-        <div className=" grid max-w-full gap-4 p-4 md:grid-cols-1 ">
+      <section className=" min-h-[calc(100vh-4rem)] flex justify-center items-center">
+        <div className=" grid max-w-full gap-4 p-4 md:grid-cols-1 lg:max-w-96 lg:max-h-96 ">
           <article className=" py-7 px-10 rounded-xl bg-white p-3 shadow-lg hover:shadow-xl hover:transform hover:scale-105 duration-300">
             <a href="#">
               <div className="relative flex overflow-hidden rounded-xl justify-center items-center">
-                <img
+                <Image
                   src={product.image}
                   alt={product.name}
-                  className="w-56 h-32 object-cover"
+                  width={140}
+                  height={100}
                 />
               </div>
               <div className="mt-10 p-2 ">
@@ -135,7 +140,8 @@ export default function ProductReview() {
                   <div className="w-1/2">
                     <p>
                       <span className="text-sm font-bold text-blue-500">
-                        Stock: {product.stock}
+                        Stock:{" "}
+                        {product.stock > 0 ? product.stock : "Out of Stock"}
                       </span>
                     </p>
                   </div>
@@ -155,14 +161,20 @@ export default function ProductReview() {
                   <div className="w-full flex justify-center mt-4">
                     <button
                       onClick={handleAddToCart}
-                      disabled={loading}
-                      className={`flex items-center space-x-1.5 rounded-lg px-4 py-1.5 text-white duration-100 ${
-                        loading
+                      disabled={product.stock === 0 || loading} // ✅ Disable button if stock is 0
+                      className={`px-4 py-2 text-white ${
+                        product.stock === 0
                           ? "bg-gray-400 cursor-not-allowed"
                           : "bg-blue-500 hover:bg-blue-600"
-                      } text-sm`}
+                      }`}
                     >
-                      {loading ? "Adding..." : "Add to cart"}
+                      <span>
+                        {loading
+                          ? "Adding..."
+                          : product.stock === 0
+                          ? "Out of Stock"
+                          : "Add to Cart"}
+                      </span>
                     </button>
                   </div>
                 </div>

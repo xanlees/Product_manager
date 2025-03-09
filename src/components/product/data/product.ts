@@ -5,11 +5,12 @@ export interface Products {
     name: string;
     image: string;
     description: string;
+    size_stock: Record<string, number>;
     stock: number;
-    size: string;
     color: string;
     price: number;
     quantity: number;
+    additional_images?: string[];
   }
 
 interface ProductStore {

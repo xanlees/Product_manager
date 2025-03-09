@@ -138,6 +138,16 @@ export default function Product() {
     {
       accessorKey: "stock",
       header: "Stock",
+      cell: ({ row }) => {
+        const stock = Number(row.original.stock);
+        return (
+          stock > 0? (
+            <span className="text-green-500">{stock} in stock</span>
+          ) : (
+            <span className="text-red-500">Out of Stock</span>
+          )
+        ) 
+      },
       enableSorting: true,
     },
 

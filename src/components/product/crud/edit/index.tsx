@@ -3,12 +3,9 @@ import { useForm } from "react-hook-form";
 import { Products } from "../../data/product";
 import { useEffect, useState } from "react";
 import { updateProduct } from "../../services/api";
-import { useRouter } from "next/navigation";
 
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Link from "next/link";
-import { IoIosArrowBack } from "react-icons/io";
 
 const choices_Size = [
   { value: "S", label: "S" },
@@ -26,7 +23,6 @@ export default function EditForm({ product }: { product: Products }) {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<Products>({
     defaultValues: product,
@@ -35,8 +31,6 @@ export default function EditForm({ product }: { product: Products }) {
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-  const router = useRouter();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -84,10 +78,10 @@ export default function EditForm({ product }: { product: Products }) {
     //   en: {name: data.name},
     // }
     // formData.append("translations", JSON.stringify(translations));
-    formData.append(
-      "translations",
-      JSON.stringify({ en: { name: data.name } })
-    );
+    // formData.append(
+    //   "translations",
+    //   JSON.stringify({ en: { name: data.name } })
+    // );
     formData.append("description", String(data.description));
     formData.append("price", String(data.price));
     formData.append("stock", String(data.stock));
@@ -96,9 +90,13 @@ export default function EditForm({ product }: { product: Products }) {
 
     if (selectedFile) {
       formData.append("image", selectedFile);
-    } else if (product?.image) {
-      formData.append("image", product.image);
     }
+
+    // if (selectedFile) {
+    //   formData.append("image", selectedFile);
+    // } else if (product?.image) {
+    //   formData.append("image", product.image);
+    // }
 
     try {
       const response = await updateProduct(formData, data.id);

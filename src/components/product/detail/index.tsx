@@ -42,7 +42,7 @@ export default function ProductDetail() {
               ? selectedProduct.image
               : `http://localhost:8000${selectedProduct.image}`
           );
-          setSizeStock(selectedProduct.size_stock);
+          setSizeStock(selectedProduct.sizes);
         }
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -94,7 +94,7 @@ export default function ProductDetail() {
   };
 
   const handleAddToCart = async () => {
-    if (quantity < 1 || quantity > product.stock) {
+    if (quantity < 1 || quantity > sizeStock[selectedSize]) {
       alert("Invalid quantity!");
       return;
     }
@@ -115,7 +115,7 @@ export default function ProductDetail() {
 
     try {
       // ✅ Reduce stock in backend
-      const stockUpdateResponse = await fetch(
+      const response = await fetch(
         `http://localhost:8000/api/v1/products/${product.id}/reduce_stock/`,
         {
           method: "PATCH",
@@ -123,15 +123,25 @@ export default function ProductDetail() {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify({ stock: quantity }),
+          body: JSON.stringify({
+            size: selectedSize, // ✅ Correct key
+            quantity: quantity, // ✅ Correct key
+          }),
         }
       );
 
-      if (!stockUpdateResponse.ok) {
-        throw new Error("Failed to update stock");
-      }
+
+      const jsonResponse = await response.json();
+
+      if (!response.ok) throw new Error(jsonResponse.error || "Failed to update stock");
+  
 
       alert("Product added to cart successfully!");
+
+      setSizeStock((prevStock) => ({
+        ...prevStock,
+        [selectedSize]: Math.max(0, prevStock[selectedSize] - quantity),  // ✅ Reduce only selected size stock
+      }));
     } catch (error) {
       console.error("Error adding to cart:", error);
       alert("Error adding to cart");
@@ -228,9 +238,9 @@ export default function ProductDetail() {
 
         <h1 className="text-2xl font-bold mt-4">{product.name}</h1>
         <p className="text-gray-600 mt-2">{product.price} ₭</p>
-        {/* <p className="text-gray-600">Size:</p>
+        <p className="text-gray-600">Size:</p>
         <div className="mt-2 flex gap-2">
-          {availableSizes.map((size) => (
+          {Object.keys(product.sizes || {}).map((size) => (
             <div
               key={size}
               onClick={() => setSelectedSize(size)}
@@ -243,7 +253,7 @@ export default function ProductDetail() {
               {size}
             </div>
           ))}
-        </div> */}
+        </div>
 
         <div className="flex items-center justify-center mt-2">
           <label className="mr-2 text-gray-600">Qty:</label>
@@ -263,44 +273,58 @@ export default function ProductDetail() {
           <span className="px-4 py-1 bg-white">{quantity}</span>
 
           <button
-            onClick={() => setQuantity((prev) => prev + 1)}
-            disabled={product.stock <= 0} // ✅ Only disable when stock is 0
+            onClick={() =>
+              setQuantity((prev) => Math.min(sizeStock[selectedSize], prev + 1))
+            }
+            disabled={sizeStock[selectedSize] <= 0}
             className={`px-2 w-8 border bg-slate-100 ${
-              product.stock <= 0
+              sizeStock[selectedSize] <= 0
                 ? "bg-gray-300 cursor-not-allowed"
                 : "bg-gray-100 hover:bg-gray-300"
             }`}
           >
             +
           </button>
-          <p className="px-2 text-gray-300">Stock:</p>
+          {/* <p className=" px-2 text-gray-300">Stock:</p>
           <span
-            className={`text-gray-300 ${
-              product.stock <= 0
+            className={
+              product.size_stock[selectedSize] === 0
                 ? "text-red-500"
-                : product.stock === 1
-                ? "text-yellow-500"
-                : ""
-            }`}
+                : "text-green-500"
+            }
           >
-            {product.stock === 1
-              ? "One left in stock" // ✅ Show message when 1 left
-              : Math.max(0, product.stock - quantity)}
-          </span>
+            {product.size_stock[selectedSize] === 1
+              ? "One left in stock"
+              : Math.max(0, sizeStock[selectedSize] - quantity)}{" "}
+            {product.size_stock[selectedSize] === 1 ? "left" : "available"}
+          </span> */}
+          <p className="px-3 text-gray-200 mt-2">
+            Stock:{" "}
+            <span
+              className={
+                product.sizes[selectedSize] === 0
+                  ? "text-red-600"
+                  : "text-green-300"
+              }
+            >
+              {product.sizes[selectedSize]}{" "}
+              {product.sizes[selectedSize] === 1 ? "left" : "available"}
+            </span>
+          </p>
         </div>
         <div className="flex items-center justify-center mt-2">
           <button
             onClick={handleAddToCart}
-            disabled={product.stock === 0 || loading}
+            disabled={product.sizes[selectedSize] === 0 || loading}
             className={`mt-4 px-4 py-2 text-white rounded-md ${
-              product.stock === 0
+              product.sizes[selectedSize] === 0
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-blue-500 hover:bg-blue-600"
             }`}
           >
             {loading
               ? "Adding..."
-              : product.stock === 0
+              : product.sizes[selectedSize] === 0
               ? "Out of Stock"
               : "Add to Cart"}
           </button>

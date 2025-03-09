@@ -54,7 +54,7 @@ export default function ProductAllReview() {
                     {product.name}
                   </h2>
                   <p className="text-gray-600">{product.price} ₭</p>
-                  <p className="text-sm">
+                  {/* <p className="text-sm">
                     {product.stock > 0 ? (
                       <span className="text-green-500">
                         In Stock: {product.stock} 
@@ -62,7 +62,7 @@ export default function ProductAllReview() {
                     ) : (
                       <span className="text-red-500">Out of Stock</span>
                     )}
-                  </p>
+                  </p> */}
                 </div>
               </Link>
             ))}

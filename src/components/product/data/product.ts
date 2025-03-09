@@ -5,8 +5,7 @@ export interface Products {
     name: string;
     image: string;
     description: string;
-    size_stock: Record<string, number>;
-    stock: number;
+    sizes: Record<string, number>;
     color: string;
     price: number;
     quantity: number;

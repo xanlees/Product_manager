@@ -112,11 +112,11 @@ export default function Product() {
       enableSorting: true,
     },
 
-    {
-      accessorKey: "size",
-      header: "Size",
-      enableSorting: true,
-    },
+    // {
+    //   accessorKey: "size",
+    //   header: "Size",
+    //   enableSorting: true,
+    // },
 
     {
       accessorKey: "color",
@@ -135,21 +135,21 @@ export default function Product() {
       }
     },
 
-    {
-      accessorKey: "stock",
-      header: "Stock",
-      cell: ({ row }) => {
-        const stock = Number(row.original.stock);
-        return (
-          stock > 0? (
-            <span className="text-green-500">{stock} in stock</span>
-          ) : (
-            <span className="text-red-500">Out of Stock</span>
-          )
-        ) 
-      },
-      enableSorting: true,
-    },
+    // {
+    //   accessorKey: "stock",
+    //   header: "Stock",
+    //   cell: ({ row }) => {
+    //     const stock = Number(row.original.stock);
+    //     return (
+    //       stock > 0? (
+    //         <span className="text-green-500">{stock} in stock</span>
+    //       ) : (
+    //         <span className="text-red-500">Out of Stock</span>
+    //       )
+    //     ) 
+    //   },
+    //   enableSorting: true,
+    // },
 
     // {
     //   accessorKey: "open_date",

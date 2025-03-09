@@ -30,6 +30,19 @@ export default function CartPage() {
               </button>
             </div>
           ))}
+          <p className="text-lg font-bold text-black text-right">
+            Total:{" "}
+            {new Intl.NumberFormat("en-US", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(
+              cartItems.reduce(
+                (total, item) => total + item.price * item.quantity,
+                0
+              )
+            )}{" "}
+            ₭
+          </p>
           {/* <button
             onClick={clearCart}
             className="w-full bg-red-500 text-white py-2 mt-4 rounded hover:bg-red-600"

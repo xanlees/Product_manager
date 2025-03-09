@@ -82,6 +82,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // const clearCart = () => {
+  //   setCartItems([]);
+  //   localStorage.removeItem("cart");
+  // }
+
   return (
     <CartContext.Provider
       value={{

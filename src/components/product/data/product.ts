@@ -6,7 +6,7 @@ export interface Products {
     image: string;
     description: string;
     sizes: Record<string, number>;
-    color: string;
+    color: Record<string, string>;
     price: number;
     quantity: number;
     additional_images?: string[];

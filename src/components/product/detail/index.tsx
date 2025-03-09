@@ -15,13 +15,14 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(false);
   const { addToCart } = useCart();
   const [selectedImage, setSelectedImage] = useState<string>("");
-  const [hoveredImage, setHoveredImage] = useState<string | null>(null);
+  const [zoomed, setZoomed] = useState(false);
 
   // const availableSizes = ["S", "M", "L", "XL"];
   // const [selectedSize, setSelectedSize] = useState(availableSizes[0]);
 
   const [sizeStock, setSizeStock] = useState<{ [key: string]: number }>({});
   const [selectedSize, setSelectedSize] = useState("40");
+  const [selectedColor, setSelectedColor] = useState<string>("");
 
   // const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -43,6 +44,8 @@ export default function ProductDetail() {
               : `http://localhost:8000${selectedProduct.image}`
           );
           setSizeStock(selectedProduct.sizes);
+          setSelectedSize(Object.keys(selectedProduct.sizes)[0]);
+          setSelectedColor(Object.keys(selectedProduct.color)[0]);
         }
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -93,6 +96,27 @@ export default function ProductDetail() {
     }
   };
 
+  const handleColorChange = (colors: string) => {
+    setSelectedColor(colors);
+    setSelectedImage(product.color[colors]); // ✅ Update image based on color
+  };
+
+  // const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  //   if (!e.currentTarget) return;
+
+  //   const { left, top, width, height } =
+  //     e.currentTarget.getBoundingClientRect();
+  //   const x = ((e.clientX - left) / width) * 100;
+  //   const y = ((e.clientY - top) / height) * 100;
+
+  //   setZoomPosition({ x, y });
+  //   setIsHovering(true);
+  // };
+
+  // const handleMouseLeave = () => {
+  //   setIsHovering(false);
+  // };
+
   const handleAddToCart = async () => {
     if (quantity < 1 || quantity > sizeStock[selectedSize]) {
       alert("Invalid quantity!");
@@ -106,7 +130,7 @@ export default function ProductDetail() {
       name: product.name,
       price: product.price,
       quantity: quantity,
-      color: product.color,
+      color: selectedSize,
       size: selectedSize,
       image: product.image,
     };
@@ -130,17 +154,16 @@ export default function ProductDetail() {
         }
       );
 
-
       const jsonResponse = await response.json();
 
-      if (!response.ok) throw new Error(jsonResponse.error || "Failed to update stock");
-  
+      if (!response.ok)
+        throw new Error(jsonResponse.error || "Failed to update stock");
 
       alert("Product added to cart successfully!");
 
       setSizeStock((prevStock) => ({
         ...prevStock,
-        [selectedSize]: Math.max(0, prevStock[selectedSize] - quantity),  // ✅ Reduce only selected size stock
+        [selectedSize]: Math.max(0, prevStock[selectedSize] - quantity), // ✅ Reduce only selected size stock
       }));
     } catch (error) {
       console.error("Error adding to cart:", error);
@@ -154,29 +177,63 @@ export default function ProductDetail() {
     <div className="min-h-screen flex flex-col items-center justify-center  p-6">
       <div className="bg-white text-gray-700 p-6 rounded-lg shadow-lg max-w-full w-full">
         {/* ✅ Image Preview */}
-        <div className="relative flex justify-center items-center">
-          {/* <button
+        <div className="relative flex flex-col items-center">
+          <div className=" relative border rounded-md overflow-hidden w-52 h-60 cursor-zoom-in">
+            {/* <button
             onClick={goToPrev}
             className="absolute left-0 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700"
           >
             <FaChevronLeft className="w-5 h-5" />
           </button> */}
 
-          <Image
-            src={hoveredImage || selectedImage}
-            alt="Selected Product"
-            width={260}
-            height={230}
-            className="rounded-md w-52 h-60 border"
-          />
+            <Image
+              src={selectedImage}
+              alt="Selected Product"
+              width={260}
+              height={230}
+              className="transition-transform duration-300 ease-in-out"
+              onClick={() => setZoomed(true)}
+            />
 
-          {/* <button
+            {/* <button
             onClick={goToNext}
             className="absolute right-0 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700"
           >
             <FaChevronRight className="w-5 h-5" />
           </button> */}
+          </div>
         </div>
+
+        {/* {isHovering && zoomPosition && (
+          <div className="absolute left-full top-0 ml-6 w-64 h-64 border rounded-lg shadow-lg overflow-hidden bg-white">
+            <div className="relative w-[800px] h-[800px] overflow-hidden">
+              <Image
+                src={product.image}
+                alt="Zoomed Product"
+                fill
+                className="absolute"
+                style={{
+                  transform: `translate(-${zoomPosition.x}%, -${zoomPosition.y}%) scale(2)`,
+                  transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                }}
+              />
+            </div>
+          </div>
+        )} */}
+        {zoomed && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
+            onClick={() => setZoomed(false)} // ✅ Click outside to close
+          >
+            <Image
+              src={selectedImage}
+              alt="Zoomed Image"
+              width={800} // ✅ Larger width
+              height={600} // ✅ Larger height
+              className="rounded-lg shadow-lg"
+            />
+          </div>
+        )}
 
         <div className="mt-3 flex gap-2 justify-center items-center">
           <button
@@ -197,10 +254,12 @@ export default function ProductDetail() {
                 alt={`Thumbnail ${index + 1}`}
                 width={80}
                 height={60}
-                className="cursor-pointer rounded border hover:border-blue-500"
-                onMouseEnter={() => setHoveredImage(img)}
-                onMouseLeave={() => setHoveredImage(null)}
-                onClick={() => setSelectedImage(img)}
+                className={`cursor-pointer rounded border ${
+                  selectedImage === img
+                    ? "border-blue-500"
+                    : "hover:border-blue-500"
+                }`}
+                onMouseEnter={() => setSelectedImage(img)}
               />
             ))}
           </div>
@@ -237,7 +296,48 @@ export default function ProductDetail() {
         </div>
 
         <h1 className="text-2xl font-bold mt-4">{product.name}</h1>
-        <p className="text-gray-600 mt-2">{product.price} ₭</p>
+        {/* <p className="text-gray-600 mt-4">Color:</p>
+        <div className="mt-2 flex gap-2">
+          {Object.keys(product.color).map((color) => (
+            <button
+              key={color}
+              onClick={() => handleColorChange(color)}
+              className={`w-8 h-8 rounded-full border-2 ${
+                selectedColor === color ? "border-blue-500" : "border-gray-300"
+              }`}
+              style={{ backgroundColor: color.toLowerCase() }}
+            />
+          ))}
+        </div> */}
+        <p className="text-gray-600 mt-4">Color:</p>
+        <div className="mt-2 flex gap-2">
+          {Object.entries(product.color).map(([colorName, colorImage]) => {
+            const imageUrl = colorImage.startsWith("http")
+              ? colorImage
+              : `http://localhost:8000${colorImage}`; // ✅ Ensure a full URL
+
+            return (
+              <button
+                key={colorName}
+                onClick={() => setSelectedImage(imageUrl)}
+                className={`w-16 h-16 rounded-md border-2 overflow-hidden ${
+                  selectedImage === imageUrl
+                    ? "border-blue-500"
+                    : "border-gray-300"
+                }`}
+              >
+                <Image
+                  src={imageUrl} // ✅ Show correct image URL
+                  alt={colorName}
+                  width={50}
+                  height={50}
+                  className="rounded-md"
+                />
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-gray-600 mt-2">{product.price} $</p>
         <p className="text-gray-600">Size:</p>
         <div className="mt-2 flex gap-2">
           {Object.keys(product.sizes || {}).map((size) => (

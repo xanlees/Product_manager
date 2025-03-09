@@ -17,9 +17,11 @@ export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [hoveredImage, setHoveredImage] = useState<string | null>(null);
 
+  // const availableSizes = ["S", "M", "L", "XL"];
+  // const [selectedSize, setSelectedSize] = useState(availableSizes[0]);
+
   const [sizeStock, setSizeStock] = useState<{ [key: string]: number }>({});
-  
-  const [selectedSize, setSelectedSize] = useState("40"); 
+  const [selectedSize, setSelectedSize] = useState("40");
 
   // const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -40,6 +42,7 @@ export default function ProductDetail() {
               ? selectedProduct.image
               : `http://localhost:8000${selectedProduct.image}`
           );
+          setSizeStock(selectedProduct.size_stock);
         }
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -225,7 +228,7 @@ export default function ProductDetail() {
 
         <h1 className="text-2xl font-bold mt-4">{product.name}</h1>
         <p className="text-gray-600 mt-2">{product.price} ₭</p>
-        <p className="text-gray-600">Size:</p>
+        {/* <p className="text-gray-600">Size:</p>
         <div className="mt-2 flex gap-2">
           {availableSizes.map((size) => (
             <div
@@ -240,7 +243,7 @@ export default function ProductDetail() {
               {size}
             </div>
           ))}
-        </div>
+        </div> */}
 
         <div className="flex items-center justify-center mt-2">
           <label className="mr-2 text-gray-600">Qty:</label>
@@ -260,10 +263,8 @@ export default function ProductDetail() {
           <span className="px-4 py-1 bg-white">{quantity}</span>
 
           <button
-            onClick={() =>
-              setQuantity((prev) => Math.min(product.stock, prev + 1))
-            }
-            disabled={product.stock <= 0}
+            onClick={() => setQuantity((prev) => prev + 1)}
+            disabled={product.stock <= 0} // ✅ Only disable when stock is 0
             className={`px-2 w-8 border bg-slate-100 ${
               product.stock <= 0
                 ? "bg-gray-300 cursor-not-allowed"
@@ -272,7 +273,7 @@ export default function ProductDetail() {
           >
             +
           </button>
-          <p className=" px-2 text-gray-300">Stock:</p>
+          <p className="px-2 text-gray-300">Stock:</p>
           <span
             className={`text-gray-300 ${
               product.stock <= 0

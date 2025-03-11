@@ -3,10 +3,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Sidebar } from "./Side";
 import { Navbar } from "./Nav";
 import { CartProvider } from "@/components/product/carts/cartContext";
-import { ThemeProvider } from "@/components/context/ThemeContext";
+import { Provider } from "./providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,24 +20,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark:bg-gray-900">
+    <html lang="en" className="dark:bg-gray-900" suppressHydrationWarning>
       <body
         className={`${inter.className} flex h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white`}
       >
-        <ThemeProvider>
+        <Provider>
           <CartProvider>
             <ToastContainer />
             {/* Sidebar and Navbar */}
-            <Sidebar />
+
+            {/* <Sidebar /> */}
 
             {/* Navbar (Fixed at top) */}
             <Navbar />
-
             {/* Main Content */}
 
-            {children}
+            <main className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white flex-1 p-4">
+              {children}
+            </main>
           </CartProvider>
-        </ThemeProvider>
+        </Provider>
       </body>
     </html>
   );

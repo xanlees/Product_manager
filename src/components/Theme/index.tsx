@@ -1,19 +1,36 @@
 "use client";
 
-import { BsSun, BsMoon } from "react-icons/bs";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+import { FiSun, FiMoon } from "react-icons/fi";
+import Image from "next/image";
 
-export default function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
+export default function ThemeSwitch() {
+  const [mounted, setMounted] = useState(false);
+  const { setTheme, resolvedTheme } = useTheme();
 
-  console.log(`ThemeToggle`, theme);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted)
+    return (
+      <Image
+        src="data:image/svg+xml;base64,PHN2ZyBzdHJva2U9IiNGRkZGRkYiIGZpbGw9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMCIgdmlld0JveD0iMCAwIDI0IDI0IiBoZWlnaHQ9IjIwMHB4IiB3aWR0aD0iMjAwcHgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiB4PSIyIiB5PSIyIiBmaWxsPSJub25lIiBzdHJva2Utd2lkdGg9IjIiIHJ4PSIyIj48L3JlY3Q+PC9zdmc+Cg=="
+        width={36}
+        height={36}
+        sizes="36x36"
+        alt="Loading Light/Dark Toggle"
+        priority={false}
+        title="Loading Light/Dark Toggle"
+      />
+    );
 
   return (
-    <button
-      onClick={toggleTheme}
-      className="p-2 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-    >
-      {theme === "light" ? <BsMoon className="text-black" /> : <BsSun className="text-yellow-400" />}
+    <button className="p-2 mt-1 rounded-md hover:bg-gray-300 dark:hover:bg-slate-700 transition">
+      {resolvedTheme === "dark" ? (
+        <FiSun onClick={() => setTheme("light")} className="text-yellow-400 w-6 h-5" />
+      ) : (
+        <FiMoon onClick={() => setTheme("dark")} className="text-black w-6 h-5" />
+      )}
     </button>
   );
 }

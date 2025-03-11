@@ -25,14 +25,14 @@ export default function ProductAllReview() {
   }
 
   return (
-    <section className="min-h-screen w-full flex justify-center items-center bg-gray-100 p-6">
+    <section className="w-full flex justify-center items-center p-6 ">
       <div className="w-full max-w-6xl">
-        <h1 className="text-3xl font-bold text-center mb-6 text-black ">
+        {/* <h1 className="text-3xl font-bold text-center mb-6 text-black dark:text-gray-100">
           All Products
-        </h1>
+        </h1> */}
 
         {product.length === 0 ? (
-          <p className="text-black text-center">No products available.</p>
+          <p className="text-black text-center dark:text-gray-50">No products available.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ">
             {product.map((product) => (
@@ -40,7 +40,7 @@ export default function ProductAllReview() {
                 key={`product-${product.id}`}
                 href={`/product/${product.id}`}
               >
-                <div className="bg-white p-4 shadow-md rounded-lg hover:shadow-xl hover:scale-105 duration-300 cursor-pointer space-y-3">
+                <div className="bg-gray-100 dark:text-gray-50 dark:bg-gray-800 p-4 shadow-md rounded-lg hover:shadow-xl hover:scale-105 duration-300 cursor-pointer space-y-3">
                   <div className="relative flex justify-center items-center">
                     <Image
                       src={product.image}
@@ -50,10 +50,10 @@ export default function ProductAllReview() {
                       className="rounded-md w-52 h-70"
                     />
                   </div>
-                  <h2 className="text-xl text-gray-400 font-semibold mt-2">
+                  <h2 className="text-xl text-gray-400 dark:text-gray-50 font-semibold mt-2">
                     {product.name}
                   </h2>
-                  <p className="text-gray-600">{product.price} ₭</p>
+                  <p className="text-gray-600 dark:text-gray-400">{product.price} $</p>
                   {/* <p className="text-sm">
                     {product.stock > 0 ? (
                       <span className="text-green-500">

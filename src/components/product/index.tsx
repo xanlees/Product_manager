@@ -199,8 +199,8 @@ export default function Product() {
   });
 
   return (
-    <div className="w-full bg-white shadow-md rounded-lg p-4">
-      <h2 className="text-xl font-bold mb-4 text-black">Product</h2>
+    <div className=" overflow-auto w-full bg-gray-50 shadow-md rounded-lg p-4 dark:bg-gray-800">
+      <h2 className="text-xl font-bold mb-4 text-black dark:text-gray-300">Product</h2>
 
       {editingproduct ? (
         <EditForm product={editingproduct} />
@@ -222,8 +222,8 @@ export default function Product() {
             </li>
           </div>
 
-          <table className="w-full border-collapse border border-gray-300">
-            <thead className="bg-gray-200 text-black text-sm font-medium">
+          <table className="w-full border-collapse border border-gray-300 dark:bg-gray-800">
+            <thead className="bg-gray-200 text-black text-sm font-medium  dark:bg-gray-800 dark:text-gray-300">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
@@ -258,11 +258,11 @@ export default function Product() {
                 </tr>
               ) : (
                 table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="border hover:bg-gray-100">
+                  <tr key={row.id} className="border hover:bg-gray-600 dark:text-gray-100">
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        className="border p-2 text-gray-800 text-xs font-medium text-center"
+                        className="border p-2 text-gray-800 text-xs font-medium text-center dark:text-gray-100"
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -283,7 +283,7 @@ export default function Product() {
             >
               <IoIosArrowBack className="w-6 h-4 text-red-700" />
             </button>
-            <span className="text-black">
+            <span className="text-black dark:text-gray-100">
               {table.getState().pagination.pageIndex + 1} of{" "}
               {table.getPageCount()}
             </span>

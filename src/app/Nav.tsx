@@ -1,8 +1,7 @@
 "use client";
 
-import { useCart } from "@/components/product/carts/cartContext";
-import ThemeSwitch from "@/components/Theme";
-// import ThemeToggle from "@/components/Theme";
+import { useCart } from "@/components/contexts/cartContext";
+import { ModeToggle } from "@/components/Theme";
 import Link from "next/link";
 import { AiFillProduct } from "react-icons/ai";
 import { BsCart2 } from "react-icons/bs";
@@ -23,7 +22,7 @@ export const Navbar = () => {
           </h2>
         </a>
         <div className="flex md:order-2 space-x-3 md:space-x-2 rtl:space-x-reverse">
-          <ThemeSwitch />
+          <ModeToggle />
           <Link
             href="/carts"
             className="relative flex items-center p-2 hover:bg-gray-200 dark:hover:bg-slate-800 rounded"
@@ -59,11 +58,11 @@ export const Navbar = () => {
             </li>
             <li>
               <Link
-                href="/product"
+                href="/payments"
                 className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
               >
                 <AiFillProduct className="mr-2 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
-                Products
+                
               </Link>
             </li>
           </ul>

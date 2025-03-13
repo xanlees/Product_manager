@@ -1,29 +1,27 @@
 import { create } from "zustand";
 
 
-export interface StockSize {
+export type StockSize = {
   id: number;
   size: string;
   stock: number;
-}
+};
 
-export interface ColorImage {
-  id: number;
+export type ColorImage = {
+  id?: number;
   color_name: string;
   image: string;
-}
+  stock_sizes: StockSize[];
+};
 
 export interface Products {
     id: number;
     name: string;
     image: string;
     description: string;
-    // sizes: Record<string, number>;
-    // color: Record<string, string>;
     price: number;
     quantity: number;
     additional_images: string[];
-    stock_sizes: StockSize[];
     color_images: ColorImage[];
   }
 

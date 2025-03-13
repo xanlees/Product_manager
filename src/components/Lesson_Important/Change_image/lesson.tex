@@ -1,0 +1,61 @@
+_________________________________________________________________________________________________
++++++++  use useEffect to fetching Data
+
+useEffect(() => {
+    const loadProducts = async () => {
+        setLoading(true);
+        try {
+            const data = await fetchProduct();
+            const selectedProduct = data.find((p: Products) => p.id === Number(id));
+
+            if (selectedProduct) {
+                setProducts(selectedProduct);
+                const defaultColor = selectedProduct.color_images?.[0] || null;
+
+                setSelectedColor(defaultColor);
+                setSelectedImage(defaultColor?.image || selectedProduct.image);
+
+                updateAdditionalImages(selectedProduct.additional_images, defaultColor);
+            }
+        } catch (error) {
+            console.error("Error fetching products:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    loadProducts();
+}, [id]);
+
+__________________________________________________________________________
+
+
+++++++++++ use handleColorChange 
+
+const handleColorChange = (color: ColorImage) => {
+  setSelectedColor(color);
+  setSelectedImage(color.image);
+
+  if (product?.additional_images) {
+    updateAdditionalImages(product.additional_images, color);
+  }
+};
+
+________________________________________________________________________________
+
+++++++++++ create updateAdditionalImages this update image Change
+
+const updateAdditionalImages = (allImages: string[], color: ColorImage | null) => {
+  if (!color) {
+    setFilteredImages([]);
+    return;
+  }
+
+  const colorNameLower = color.color_name.toLowerCase();
+
+  const filtered = allImages.filter((img) =>
+    img.toLowerCase().includes(colorNameLower)
+  );
+
+  setFilteredImages(filtered);
+};

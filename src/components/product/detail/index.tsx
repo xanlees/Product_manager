@@ -4,9 +4,18 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation"; // ✅ Get product ID from URL
 import Image from "next/image";
 import { ColorImage, Products } from "../data/product";
-import { useCart } from "../carts/cartContext";
+import { useCart } from "../../contexts/cartContext";
 import { fetchProduct } from "../services/api";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaChevronLeft } from "react-icons/fa";
+import { FaChevronRight } from "react-icons/fa6";
+import { Button } from "@/components/ui/button";
+import { Terminal } from "lucide-react";
+
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert"
 
 export default function ProductDetail() {
   const { id } = useParams(); // ✅ Get product ID from URL
@@ -14,35 +23,19 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
   const { addToCart } = useCart();
-  // const [selectedImage, setSelectedImage] = useState<string>("");
   const [zoomed, setZoomed] = useState(false);
-
-  // const availableSizes = ["S", "M", "L", "XL"];
-  // const [selectedSize, setSelectedSize] = useState(availableSizes[0]);
-
-  // const [sizeStock, setSizeStock] = useState<{ [key: string]: number }>({});
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  // const [selectedSize, setSelectedSize] = useState("40");
-  // const [selectedColor, setSelectedColor] = useState<ColorImage | null>(null);
   const [selectedColor, setSelectedColor] = useState<ColorImage | null>(null); // ✅ Track selected color
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [filteredImages, setFilteredImages] = useState<string[]>([]);
-  // const [image, setImages] = useState<string[]>([]); // ✅ Declare images state
-
-  // const [currentIndex, setCurrentIndex] = useState(0);
-
-  // console.log("ttttttttttt", setImages);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // const thumbnailsToShow = 3;
 
-  const colorMatches: Record<string, string[]> = {
-    White: ["white", "airwhite"],
-    Black: ["black", "airblack"],
-    Blue: ["blue", "airsky"],
-    Red: ["red", "airred"], // ✅ Added new Red color
-  };
+  const [showAlert, setShowAlert] = useState(false);
+
+
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -58,31 +51,13 @@ export default function ProductDetail() {
             selectedProduct.color_images?.[0] || null;
           setSelectedColor(defaultColor);
           setSelectedImage(defaultColor?.image || selectedProduct.image);
-          // setSelectedImage(
-          //   selectedProduct.image.startsWith("http")
-          //     ? selectedProduct.image
-          //     : `http://localhost:8000${selectedProduct.image}`
-          // );
-          // setSelectedImage(selectedProduct.image);
-          // if (selectedProduct.stock_sizes.length > 0) {
-          //   setSelectedSize(selectedProduct.stock_sizes[0].size); // ✅ Default to first available size
-          // }
-          if (selectedProduct.stock_sizes.length > 0) {
-            setSelectedSize(selectedProduct.stock_sizes[0].size);
-          }
 
-          // if (selectedProduct.color_images.length > 0) {
-          //   setSelectedImage(selectedProduct.color_images[0].image);
-          // }
-          // setAdditionalImages(
-          //   selectedProduct.additional_images.filter((img) =>
-          //     img.includes(defaultColor?.color_name.toLowerCase())
-          //   ) || []
-          // );
-          updateAdditionalImages(
-            selectedProduct.additional_images,
-            defaultColor
-          );
+          updateAdditionalImages(selectedProduct.additional_images, defaultColor);
+
+          if (defaultColor && defaultColor.stock_sizes.length > 0) {
+            setSelectedSize(defaultColor.stock_sizes[0].size);
+          }  
+          updateAdditionalImages(selectedProduct.additional_images, defaultColor);
         }
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -94,35 +69,33 @@ export default function ProductDetail() {
     loadProducts();
   }, [id]);
 
-  useEffect(() => {
-    if (!product || !selectedColor) return;
+  const updateAdditionalImages = (allImages: string[], color: ColorImage | null) => {
+    if (!color) {
+      setFilteredImages([]);
+      return;
+    }
 
-    const matchingPatterns = colorMatches[selectedColor.color_name] || [];
-
-    const filtered = product.additional_images.filter((img) =>
-      matchingPatterns.some((pattern) => img.includes(pattern))
-    );
-
-    setFilteredImages(filtered.length > 0 ? filtered : [selectedColor.image]);
-  }, [selectedColor, product]);
-
-  const updateAdditionalImages = (
-    allImages: string[],
-    color: ColorImage | null
-  ) => {
-    if (!color) return;
-    const matchingNames = colorMatches[color.color_name] || [
-      color.color_name.toLowerCase(),
-    ];
+    const colorNameLower = color.color_name.toLowerCase();
 
     const filtered = allImages.filter((img) =>
-      matchingNames.some((name) => img.toLowerCase().includes(name))
+      img.toLowerCase().includes(colorNameLower)
     );
 
-    setFilteredImages(filtered.length > 0 ? filtered : [color.image]);
+    setFilteredImages(filtered);
   };
 
-  const selectedStock = product?.stock_sizes.find(
+  // ✅ Handle Color Change
+  const handleColorChange = (color: ColorImage) => {
+    setSelectedColor(color);
+    setSelectedImage(color.image);
+
+    if (product?.additional_images) {
+      updateAdditionalImages(product.additional_images, color);
+    }
+  };
+
+
+  const selectedStock = selectedColor?.stock_sizes.find(
     (stock) => stock.size === selectedSize
   );
 
@@ -130,57 +103,30 @@ export default function ProductDetail() {
     return <p className="text-center text-gray-500">Loading product...</p>;
   }
 
-  // const images = [
-  //   product.image.startsWith("http")
-  //     ? product.image
-  //     : `http://localhost:8000${product.image}`,
-  //   ...(Array.isArray(product.additional_images)
-  //     ? product.additional_images.map((img) =>
-  //         img.startsWith("http") ? img : `http://localhost:8000${img}`
-  //       )
-  //     : []),
-  // ].filter(Boolean);
+  const images = product?.additional_images || [];
 
-  const handleColorChange = (color: ColorImage) => {
-    setSelectedColor(color);
-    setSelectedImage(color.image); // ✅ Set new main image
-    // setAdditionalImages(
-    //   product.additional_images.filter((img) =>
-    //     img.includes(color.color_name.toLowerCase())
-    //   ) || []
-    // );
-    if (product) {
-      updateAdditionalImages(product.additional_images, color);
-    }
+  const goToNext = () => {
+    const newIndex = (currentIndex + 1) % images.length;
+    setCurrentIndex(newIndex);
+    setSelectedImage(images[newIndex]);
   };
 
-  // const goToNext = () => {
-  //   const newIndex = (currentIndex + 1) % images.length;
-  //   setCurrentIndex(newIndex);
-  //   setSelectedImage(images[newIndex]);
+  const goToPrev = () => {
+    const newIndex = (currentIndex - 1 + images.length) % images.length;
+    setCurrentIndex(newIndex);
+    setSelectedImage(images[newIndex]);
+  };
+
+  // const scrollLeft = () => {
+  //   if (scrollContainerRef.current) {
+  //     scrollContainerRef.current.scrollLeft -= 120; // Adjust based on thumbnail width
+  //   }
   // };
 
-  // const goToPrev = () => {
-  //   const newIndex = (currentIndex - 1 + images.length) % images.length;
-  //   setCurrentIndex(newIndex);
-  //   setSelectedImage(images[newIndex]);
-  // };
-
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollLeft -= 120; // Adjust based on thumbnail width
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollLeft += 120; // Adjust based on thumbnail width
-    }
-  };
-
-  // const handleColorChange = (colors: string) => {
-  //   setSelectedColor(colors);
-  //   setSelectedImage(product.color_images[colors]); // ✅ Update image based on color
+  // const scrollRight = () => {
+  //   if (scrollContainerRef.current) {
+  //     scrollContainerRef.current.scrollLeft += 120; // Adjust based on thumbnail width
+  //   }
   // };
 
   // const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -199,14 +145,10 @@ export default function ProductDetail() {
   //   setIsHovering(false);
   // };
 
-  // const handleAddToCart = async () => {
-  //   if (quantity < 1 || quantity > sizeStock[selectedSize]) {
-  //     alert("Invalid quantity!");
-  //     return;
-  //   }
+
   const handleAddToCart = async () => {
     if (quantity < 1 || !selectedStock || quantity > selectedStock.stock) {
-      alert("Invalid quantity!");
+      alert("This item is out of stock!");
       return;
     }
 
@@ -217,7 +159,7 @@ export default function ProductDetail() {
       name: product.name,
       price: product.price,
       quantity: quantity,
-      color: typeof selectedColor === "string" ? selectedColor : selectedColor?.color_name || "", // ✅ Ensure it's always a string
+      color: selectedColor?.color_name || "",
       size: selectedSize || "",
       image: selectedImage,
     };
@@ -235,49 +177,56 @@ export default function ProductDetail() {
             Accept: "application/json",
           },
           body: JSON.stringify({
+            color_name: selectedColor?.color_name,
             size: selectedSize, // ✅ Correct key
             quantity: quantity, // ✅ Correct key
           }),
         }
       );
-      const textResponse = await response.text(); // Read raw response
-      console.log("Raw API Response:", textResponse);
 
-      let jsonResponse;
-      try {
-        jsonResponse = JSON.parse(textResponse);
-        console.log("Parsed JSON:", jsonResponse);
-      } catch (error) {
-        console.error("❌ Error parsing JSON:", error, "\nRaw Response:", textResponse);
-        return;
-      }
 
       if (!response.ok) {
-        console.error("API Error:", jsonResponse.error || "Unknown error");
+        const errorText = await response.text();
+        console.error("Server error response:", errorText);
+        alert("Server Error: Check console for details.");
         return;
       }
 
-      console.log("Stock updated:", jsonResponse);
-
-      alert("Product added to cart successfully!");
+      try {
+        const jsonResponse = await response.json();
+        console.log("Success:", jsonResponse);
+        setShowAlert(true);
+        setTimeout(() => {
+          setShowAlert(false);
+        }, 3000);
+      } catch (jsonError) {
+        console.log("JSON Error:", jsonError)
+        const rawText = await response.text();
+        console.error("Invalid JSON response:", rawText);
+        alert("Invalid JSON received, check backend response.");
+      }
 
       setProducts((prevProduct) =>
         prevProduct
           ? {
-              ...prevProduct,
-              stock_sizes: prevProduct.stock_sizes.map((s) =>
-                s.size === selectedSize
-                  ? { ...s, stock: s.stock - quantity }
-                  : s
-              ),
-            }
+            ...prevProduct,
+            color_variants: prevProduct.color_images.map((color) =>
+              color.color_name === selectedColor?.color_name
+                ? {
+                  ...color,
+                  stock_sizes: color.stock_sizes.map((s) =>
+                    s.size === selectedSize ? { ...s, stock: s.stock - quantity } : s
+                  ),
+                }
+                : color
+            ),
+          }
           : prevProduct
       );
 
-      // setSizeStock((prevStock) => ({
-      //   ...prevStock,
-      //   [selectedSize]: Math.max(0, prevStock[selectedSize] - quantity), // ✅ Reduce only selected size stock
-      // }));
+      
+
+      
     } catch (error) {
       console.error("Error adding to cart:", error);
       alert("Error adding to cart");
@@ -287,16 +236,10 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="min-h-screen items-center justify-center bg-white text-gray-700 p-6 rounded-lg shadow-lg max-w-full w-full dark:bg-slate-900">
+    <div className="min-h-screen items-center justify-center p-6 rounded-lg shadow-lg max-w-full w-full ">
       {/* ✅ Image Preview */}
       <div className="relative flex flex-col justify-start items-start">
         <div className=" flex px-28 justify-center space-x-2 relative  ">
-          {/* <button
-            onClick={goToPrev}
-            className="absolute left-0 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700"
-          >
-            <FaChevronLeft className="w-5 h-5" />
-          </button> */}
           {/* <div>
               {images.map((img, index) => (
                 <Image
@@ -322,11 +265,10 @@ export default function ProductDetail() {
                   alt={`Thumbnail ${index + 1}`}
                   width={50}
                   height={40}
-                  className={`cursor-pointer rounded border ${
-                    selectedImage === img
-                      ? "border-blue-500"
-                      : "hover:border-blue-500"
-                  }`}
+                  className={`cursor-pointer rounded border ${selectedImage === img
+                    ? "border-blue-500"
+                    : "hover:border-blue-500"
+                    }`}
                   onMouseEnter={() => setSelectedImage(img)}
                 />
               ))
@@ -344,25 +286,40 @@ export default function ProductDetail() {
               className="transition-transform duration-300 ease-in-out w-full max-w-[600px] min-h-96 mx-auto"
               onClick={() => setZoomed(true)}
             />
+            <div className="">
+              
+              <Button
+                onClick={goToPrev}
+                className=" -mt-14 absolute left-48 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700"
+              >
+                <FaChevronLeft className="w-5 h-5" />
+              </Button>
+              
+              <Button
+                onClick={goToNext}
+                className=" -mt-14 absolute left-64 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700"
+              >
+                <FaChevronRight className="w-5 h-5" />
+              </Button>
+
+            </div>
+            
           </div>
 
           <div className=" -mt-2 px-12 space-y-6 dark:text-gray-100">
             <p className="text-2xl font-bold ">{product.name}</p>
-            <p className="text-gray-600 mt-2 dark:text-gray-100">
+            <p className=" mt-2 dark:text-gray-100">
               {product.price} $
             </p>
-            <p className="text-gray-600 mt-4 dark:text-gray-400">Color:</p>
+            <p className="0 mt-4 dark:text-gray-400">Color:</p>
             <div className="mt-2 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
               {product.color_images.length > 0 ? (
-                product.color_images.map((color) => (
-                  <button
-                    key={color.id}
+                product.color_images?.map((color) => (
+                  <Button
+                    key={color.id || color.color_name}
                     onClick={() => handleColorChange(color)}
-                    className={`w-16 h-16 rounded-md border-2 ${
-                      selectedColor?.color_name === color.color_name
-                        ? "border-blue-500"
-                        : "border-gray-300"
-                    }`}
+                    className={`w-20 h-20 rounded border-2 cursor-pointer hover:border-gray-600 ${selectedColor?.id === color.id ? "border-gray-200" : "border-gray-300"
+                      }`}
                   >
                     <Image
                       src={color.image}
@@ -371,107 +328,98 @@ export default function ProductDetail() {
                       height={40}
                       className="object-cover w-full h-full rounded"
                     />
-                  </button>
+                  </Button>
                 ))
               ) : (
                 <p className="text-red-500">No colors available</p>
               )}
             </div>
-            <p className="text-gray-600 mt-4 dark:text-gray-400">Size:</p>
+            <p className=" mt-4 dark:text-gray-400">Size:</p>
             <div className="mt-2 flex gap-2">
-              {product.stock_sizes.length > 0 ? (
-                product.stock_sizes.map((stock) => (
-                  <button
-                    key={stock.id}
+              {selectedColor?.stock_sizes.length > 0 ? (
+                selectedColor?.stock_sizes.map((stock) => (
+                  <Button
+                    key={stock.id || stock.size}
                     onClick={() => setSelectedSize(stock.size)}
-                    className={`px-4 py-2 border rounded-md cursor-pointer ${
-                      selectedSize === stock.size
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-200 text-gray-700"
-                    } hover:bg-blue-400 hover:text-white`}
+                    className={`px-4 py-2 border rounded-md cursor-pointer ${selectedSize === stock.size
+                      ? "bg-gray-800 text-white"
+                      : "bg-gray-200 text-gray-700"
+                      } hover:bg-gray-400 hover:text-white`}
                   >
                     {stock.size}
-                  </button>
+                  </Button>
                 ))
               ) : (
                 <p className="text-red-500">No sizes available</p>
               )}
             </div>
 
-            <div className="flex items-center justify-center mt-2">
-              {/* <label className="mr-2 text-gray-600">Qty:</label>
+            <div className=" flex ">
 
-                <button
-                  onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-                  disabled={quantity === 1}
-                  className={`px-2 w-8 border bg-slate-100 ${
-                    quantity === 1
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-gray-100 hover:bg-gray-300"
+              <Button
+                onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                disabled={quantity === 1}
+                className={`px-2 w-8 border  ${quantity === 1
+                  ? " bg-gray-500 cursor-not-allowed"
+                    : "hover:bg-gray-300 "
                   }`}
-                >
-                  -
-                </button>
-
-                <span className="px-4 py-1 bg-white">{quantity}</span>
-
-                <button
-                  onClick={() =>
-                    setQuantity((prev) =>
-                      Math.min(selectedStock?.stock || 0, prev + 1)
-                    )
-                  }
-                  disabled={!selectedStock || selectedStock.stock <= 0}
-                  className={`px-2 w-8 border bg-slate-100 ${
-                    !selectedStock || selectedStock.stock <= 0
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-gray-100 hover:bg-gray-300"
-                  }`}
-                >
-                  +
-                </button>
-
-                <p className="px-3 text-gray-200 mt-2">
-                  Stock:{" "}
-                  <span
-                    className={
-                      selectedStock?.stock === 0
-                        ? "text-red-600"
-                        : "text-green-300"
-                    }
-                  >
-                    {selectedStock?.stock || 0}{" "}
-                    {selectedStock?.stock === 1 ? "left" : "available"}
-                  </span>
-                </p> */}
-            </div>
-            <div className=" mt-28 flex ">
-              <button
-                onClick={handleAddToCart}
-                disabled={
-                  !selectedStock || selectedStock.stock === 0 || loading
-                }
-                className={`px-4 py-2 text-white rounded-3xl ${
-                  !selectedStock || selectedStock.stock === 0
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-500 hover:bg-blue-600"
-                }`}
               >
-                {loading
-                  ? "Adding..."
-                  : !selectedStock || selectedStock.stock === 0
-                  ? "Out of Stock"
-                  : "Add to Cart"}
-              </button>
+                -
+              </Button>
+
+              <span className="px-4 py-1 dark:bg-slate-900">{quantity}</span>
+
+              <Button
+                onClick={() =>
+                  setQuantity((prev) =>
+                    Math.min(selectedStock?.stock || 0, prev + 1)
+                  )
+                }
+                disabled={!selectedStock || selectedStock.stock <= 0}
+                className={`px-2 w-8 border ${!selectedStock || selectedStock.stock <= 0
+                    ? " cursor-not-allowed"
+                    : "hover:bg-gray-700"
+                  }`}
+              >
+                +
+              </Button>
+
+              <p className="px-3 text-gray-200 mt-2">
+                Stock:{" "}
+                <span
+                  className={
+                    selectedStock?.stock === 0
+                      ? "text-red-600"
+                      : "text-green-300"
+                  }
+                >
+                  {selectedStock?.stock || 0}{" "}
+                  {selectedStock?.stock === 1 ? "left" : "available"}
+                </span>
+              </p>
+            </div>
+   
+            <div className=" mt-28 flex ">
+              <Button
+                onClick={handleAddToCart}
+                disabled={!selectedStock || selectedStock.stock === 0 || loading}
+                className=' rounded-3xl '
+              >
+                Add to cart
+                  
+              </Button>
+              {showAlert && (
+                <div className="absolute -top-10 -right-32 transform -translate-x-1/2 w-full max-w-sm bg-green-500">
+                  <Alert>
+                    <Terminal className="h-4 w-4 text-green-500" />
+                    <AlertTitle className=" text-green-500">Success!</AlertTitle>
+                    <AlertDescription className=" text-green-500">Item added to cart.</AlertDescription>
+                  </Alert>
+                </div>
+              )}
+
             </div>
           </div>
-
-          {/* <button
-            onClick={goToNext}
-            className="absolute right-0 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700"
-          >
-            <FaChevronRight className="w-5 h-5" />
-          </button> */}
         </div>
       </div>
       <div className=" grid grid-cols-1 divide-x-6 ">
@@ -482,35 +430,6 @@ export default function ProductDetail() {
           >
             <FaChevronLeft className="w-5 h-5 text-gray-600 hover:text-sky-700" />
           </button>
-          <div
-            ref={scrollContainerRef}
-            className=" flex gap-2 overflow-x-scroll no-scrollbar scroll-smooth w-64 mx-auto"
-          >
-            {images.map((img, index) => (
-              <Image
-                key={index}
-                src={img}
-                alt={`Thumbnail ${index + 1}`}
-                width={80}
-                height={60}
-                className={`cursor-pointer rounded border ${
-                  selectedImage === img
-                    ? "border-blue-500"
-                    : "hover:border-blue-500"
-                }`}
-                onMouseEnter={() => setSelectedImage(img)}
-              />
-            ))}
-          </div>
-          <Image
-            src={product.image}
-            alt="Main Image"
-            width={80}
-            height={60}
-            className="cursor-pointer rounded border hover:border-blue-500"
-            onClick={() => setSelectedImage(product.image)}
-          />
-          
           <button
             onClick={scrollRight}
             // disabled={startIndex + thumbnailsToShow >= images.length}
@@ -520,22 +439,6 @@ export default function ProductDetail() {
           </button> */}
       </div>
 
-      {/* {isHovering && zoomPosition && (
-          <div className="absolute left-full top-0 ml-6 w-64 h-64 border rounded-lg shadow-lg overflow-hidden bg-white">
-            <div className="relative w-[800px] h-[800px] overflow-hidden">
-              <Image
-                src={product.image}
-                alt="Zoomed Product"
-                fill
-                className="absolute"
-                style={{
-                  transform: `translate(-${zoomPosition.x}%, -${zoomPosition.y}%) scale(2)`,
-                  transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                }}
-              />
-            </div>
-          </div>
-        )} */}
       {zoomed && (
         <div
           className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
@@ -550,67 +453,6 @@ export default function ProductDetail() {
           />
         </div>
       )}
-
-      <div className="mt-3 flex gap-2 justify-start items-start"></div>
-
-      {/* <p className="text-gray-600 mt-4">Color:</p>
-        <div className="mt-2 flex gap-2">
-          {Object.keys(product.color).map((color) => (
-            <button
-              key={color}
-              onClick={() => handleColorChange(color)}
-              className={`w-8 h-8 rounded-full border-2 ${
-                selectedColor === color ? "border-blue-500" : "border-gray-300"
-              }`}
-              style={{ backgroundColor: color.toLowerCase() }}
-            />
-          ))}
-        </div> */}
-      {/* <p className="text-gray-600 mt-4">Color:</p>
-        <div className="mt-2 flex gap-2">
-          {Object.entries(product.color).map(([colorName, colorImage]) => {
-            const imageUrl = colorImage.startsWith("http")
-              ? colorImage
-              : `http://localhost:8000${colorImage}`; // ✅ Ensure a full URL
-
-            return (
-              <button
-                key={colorName}
-                onClick={() => setSelectedImage(imageUrl)}
-                className={`w-16 h-16 rounded-md border-2 overflow-hidden ${
-                  selectedImage === imageUrl
-                    ? "border-blue-500"
-                    : "border-gray-300"
-                }`}
-              >
-                <Image
-                  src={imageUrl} // ✅ Show correct image URL
-                  alt={colorName}
-                  width={50}
-                  height={50}
-                  className="rounded-md"
-                />
-              </button>
-            );
-          })}
-        </div> */}
-
-      {/* <p className="text-gray-600">Size:</p>
-        <div className="mt-2 flex gap-2">
-          {Object.keys(product.sizes || {}).map((size) => (
-            <div
-              key={size}
-              onClick={() => setSelectedSize(size)}
-              className={`px-4 py-2 border rounded-md cursor-pointer ${
-                selectedSize === size
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700"
-              } hover:bg-blue-400 hover:text-white`}
-            >
-              {size}
-            </div>
-          ))}
-        </div> */}
     </div>
   );
 }

@@ -200,8 +200,6 @@ export default function Product() {
 
   return (
     <div className=" overflow-auto w-full bg-gray-50 shadow-md rounded-lg p-4 dark:bg-gray-800">
-      <h2 className="text-xl font-bold mb-4 text-black dark:text-gray-300">Product</h2>
-
       {editingproduct ? (
         <EditForm product={editingproduct} />
       ) : (

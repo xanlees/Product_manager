@@ -8,7 +8,7 @@ import {
   useEffect,
 } from "react";
 
-interface CartItem {
+export interface CartItem {
   id: number;
   name: string;
   price: number;
@@ -23,6 +23,7 @@ interface CartContextType {
   cartCount: number;
   addToCart: (item: CartItem) => void;
   removeFromCart: (id: number, size: string) => void;
+  clearCart: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -43,49 +44,41 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCart = (newItem: CartItem) => {
     setCartItems((prevCart) => {
+      console.log("Cart before adding:", prevCart);
+
       const existingItem = prevCart.find(
         (item) => item.id === newItem.id && item.size === newItem.size
       );
-  
+
       if (existingItem) {
-        // ✅ Update quantity if the same product + size exists
+        console.log(`Updating quantity for ${newItem.id}-${newItem.size}`);
         return prevCart.map((item) =>
           item.id === newItem.id && item.size === newItem.size
             ? { ...item, quantity: item.quantity + newItem.quantity }
             : item
         );
       } else {
-        // ✅ Otherwise, add a new entry
+        console.log(`Adding new item: ${newItem.id}-${newItem.size}`);
         return [...prevCart, newItem];
       }
     });
-  
-    localStorage.setItem("cart", JSON.stringify(cartItems)); // ✅ Save to localStorage
   };
 
-
   const removeFromCart = (id: number, size: string) => {
-    if (!window.confirm("Are you sure you want to remove this product?")) return;
-  
     setCartItems((prev) => {
-      const updatedCart = prev.filter((item) => !(item.id === id && item.size === size));
+      const updatedCart = prev.filter(
+        (item) => !(item.id === id && item.size === size)
+      );
       localStorage.setItem("cart", JSON.stringify(updatedCart));
       return updatedCart;
     });
-  
-    try {
-      console.log("Removing product", id, size);
-      alert("Product removed successfully");
-    } catch (err) {
-      console.error("Error removing product", err);
-      alert("Failed to remove product");
-    }
   };
 
-  // const clearCart = () => {
-  //   setCartItems([]);
-  //   localStorage.removeItem("cart");
-  // }
+
+  const clearCart = () => {
+    setCartItems([]);
+    localStorage.removeItem("cart");
+  };
 
   return (
     <CartContext.Provider
@@ -94,6 +87,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         cartCount: cartItems.length,
         addToCart,
         removeFromCart,
+        clearCart,
       }}
     >
       {children}

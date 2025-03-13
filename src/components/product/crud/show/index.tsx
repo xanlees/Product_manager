@@ -2,7 +2,7 @@
 
 import { useProductStore } from "../../data/product";
 import { useState } from "react";
-import { useCart } from "../../carts/cartContext";
+import { useCart } from "../../../contexts/cartContext";
 import Image from "next/image";
 
 export default function ProductReview() {
@@ -91,7 +91,7 @@ export default function ProductReview() {
     <>
       <section className=" min-h-[calc(100vh-4rem)] flex justify-center items-center">
         <div className=" grid max-w-full gap-4 p-4 md:grid-cols-1 lg:max-w-96 lg:max-h-96 ">
-          <article className=" py-7 px-10 rounded-xl bg-white p-3 shadow-lg hover:shadow-xl hover:transform hover:scale-105 duration-300">
+          <article className=" py-7 px-10 rounded-xl p-3 shadow-lg hover:shadow-xl hover:transform hover:scale-105 duration-300">
             <a href="#">
               <div className="relative flex overflow-hidden rounded-xl justify-center items-center">
                 <Image

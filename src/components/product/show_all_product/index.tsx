@@ -1,20 +1,33 @@
 "use client";
 
+import * as React from "react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { fetchProduct } from "../services/api";
-import { Products } from "../data/product";
+import { ColorImage, Products } from "../data/product";
 import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-export default function ProductAllReview() {
-  const [product, setProducts] = useState<Products[]>([]);
-  const [loading, setLoading] = useState(false);
+export default function CardWithForm() {
+  const [products, setProducts] = useState<Products[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadProducts = async () => {
-      const data = await fetchProduct(); // ✅ Fetch products
-      setProducts(data);
-      setLoading(false);
+      try {
+        const data = await fetchProduct();
+        setProducts(data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadProducts();
@@ -25,22 +38,19 @@ export default function ProductAllReview() {
   }
 
   return (
-    <section className="w-full flex justify-center items-center p-6 ">
-      <div className="w-full max-w-6xl">
-        {/* <h1 className="text-3xl font-bold text-center mb-6 text-black dark:text-gray-100">
-          All Products
-        </h1> */}
-
-        {product.length === 0 ? (
-          <p className="text-black text-center dark:text-gray-50">No products available.</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ">
-            {product.map((product) => (
-              <Link
-                key={`product-${product.id}`}
-                href={`/product/${product.id}`}
-              >
-                <div className="bg-gray-100 dark:text-gray-50 dark:bg-gray-800 p-4 shadow-md rounded-lg hover:shadow-xl hover:scale-105 duration-300 cursor-pointer space-y-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {products.length === 0 ? (
+        <p className="text-center text-gray-500">No products available.</p>
+      ) : (
+        products.map((product) => (
+          <Card key={product.id} className="w-[350px] hover:shadow-xl hover:scale-105 duration-300 cursor-pointer space-y-3">
+            <CardHeader>
+              <CardTitle>{product.name}</CardTitle>
+              <CardDescription>{product.description}.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href={`/product/${product.id}`}>
+                <div className=" ">
                   <div className="relative flex justify-center items-center">
                     <Image
                       src={product.image}
@@ -50,25 +60,17 @@ export default function ProductAllReview() {
                       className="rounded-md w-52 h-70"
                     />
                   </div>
-                  <h2 className="text-xl text-gray-400 dark:text-gray-50 font-semibold mt-2">
-                    {product.name}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400">{product.price} $</p>
-                  {/* <p className="text-sm">
-                    {product.stock > 0 ? (
-                      <span className="text-green-500">
-                        In Stock: {product.stock} 
-                      </span>
-                    ) : (
-                      <span className="text-red-500">Out of Stock</span>
-                    )}
-                  </p> */}
+                  <p className=" mt-4 px-12 ">{product.price} $</p>
                 </div>
               </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
+            </CardContent>
+            {/* <CardFooter className="flex justify-between">
+              <Button variant="outline">Cancel</Button>
+              <Button>Deploy</Button>
+            </CardFooter> */}
+          </Card>
+        ))
+      )}
+    </div>
   );
 }

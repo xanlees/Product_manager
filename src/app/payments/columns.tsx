@@ -1,20 +1,11 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown } from "lucide-react"
-import { MoreHorizontal } from "lucide-react"
+import { ArrowUpDown} from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";
-
+import ProductActions from "./delete/page";
 
 export type Products = {
     id: number;
@@ -25,9 +16,28 @@ export type Products = {
     quantity: number;
 }
 
+export const deleteProduct = async (id: number) => {
+    try {
+        const response = await fetch(`http://localhost:8000/api/v1/products/${id}`, {
+            method: "DELETE",
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to delete product: ${response.statusText}`);
+        }
+
+        window.location.reload()
+        return response;
+    } catch (error) {
+        console.error("Error deleting product:", error);
+        throw error;
+    }
+
+};
+
 
 export const columns: ColumnDef<Products>[] = [
-
+    
     {
         id: "select",
         header: ({ table }) => (
@@ -104,27 +114,8 @@ export const columns: ColumnDef<Products>[] = [
     {
         id: "actions",
         cell: ({ row }) => {
-            const product = row.original
-
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => navigator.clipboard.writeText(product.id.toString())}>
-                            Copy ID
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>View customer</DropdownMenuItem>
-                        <DropdownMenuItem>View payment details</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            )
+            const product = row.original;
+            return <ProductActions product={product} deleteProduct={deleteProduct} />;
         },
     },
 

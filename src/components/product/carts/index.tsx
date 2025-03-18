@@ -1,64 +1,120 @@
 "use client";
 
-
 import { useCart } from "../../contexts/cartContext";
 import Image from "next/image";
 import RemoveFromCartButton from "./crud/RemoveFromCartButton";
+import { ArrowDown, ArrowUp } from "lucide-react";
+import { useState } from "react";
 
 export default function CartPage() {
   const { cartItems } = useCart();
 
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
+
+  const sortedCartItems = [...cartItems].sort((a, b) => {
+    if (sortOrder === "asc") return a.price - b.price; 
+    if (sortOrder === "desc") return b.price - a.price; 
+    return 0; 
+  });
+  
+
   return (
-    <div className=" flex flex-col items-center justify-center">
+    <div className="relative overflow-x-auto shadow-md ">
+      <div className="flex justify-end mb-4">
+        <button
+          className="px-4 py-2 border rounded-md mr-2"
+          onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+        >
+          {sortOrder === "asc" ? (
+            <>
+              <ArrowUp className="inline-block w-4 h-4 mr-1" />
+              High to Low
+            </>
+          ) : (
+            <>
+              <ArrowDown className="inline-block w-4 h-4 mr-1" />
+              Low to High
+            </>
+          )}
+        </button>
+      </div>
       {cartItems.length === 0 ? (
         <p className="text-gray-500 mt-4">Your cart is empty.</p>
       ) : (
-        <div className=" mt-6 w-full max-w-full shadow-md rounded-lg p-4 dark:bg-gray-800">
-          {cartItems.map((item) => (
-            <div
-              key={`${item.id}-${item.size}`}
-              className=" relative flex flex-col justify-start items-start space-x-20 border-b p-3 dark:text-gray-300"
-            >
-              <div className="flex px-28 justify-start items-start space-x-2 relative ">
-                <Image src={item.image} alt={item.name} width={300} height={150} />
-                <div className=" px-10 space-y-6">
-                  <p className="text-xl font-bold dark:text-gray-200">{item.name}</p>
-                  <p className=" dark:text-gray-300">
-                    {item.color}
-                  </p>
-                  <p className="">{item.size}</p>
-                  <p className="">Qty: {item.quantity}</p>
-                </div>
-                <div className="absolute top-0 w-full text-right right-0">
-                  <RemoveFromCartButton id={item.id} size={item.size} />
-                </div>
-              </div>
-              <div className=" mt-5 px-8 ">
-                <p className="text-2xl font-bold text-right dark:text-gray-300">
-                  {new Intl.NumberFormat("en-US", {
-                  }).format(
-                    cartItems.reduce(
-                      (total, item) => item.price,
-                      0
-                    )
-                  )}{" "}
-                  $
-                </p>
-              </div>
-            </div>
-          ))}
-          <p className="text-lg font-bold text-right dark:text-gray-300">
+        <>
+          <table className="w-full text-sm text-center">
+            <thead className="text-xs uppercase ">
+                <tr className="">
+                <th className="border  px-4 py-2 "></th>
+                <th className="border  px-4 py-2 "></th>
+                <th className="border  px-4 py-2 ">Product</th>
+                <th className="border  px-4 py-2 ">Colors</th>
+                <th className="border  px-4 py-2 ">
+                  Price
+                    <button
+                      className="ml-2"
+                      onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                    >
+                      {sortOrder === "asc" ? <ArrowUp className="w-4 h-4 inline" /> : <ArrowDown className="w-4 h-4 inline" />}
+                    </button>
+                </th>
+                <th className="border  px-4 py-2 ">Size</th>
+                <th className="border  px-4 py-2 ">Quantity</th>
+                <th className="border  px-4 py-2 ">Subtotal</th>
+              </tr>
+            </thead>
+
+            <tbody>
+                {sortedCartItems.map((item) => {
+                  const colorMap: Record<string, { text: string; class: string }> = {
+                    Red: { text: "Red", class: "text-white bg-red-500 px-2 py-1 rounded" },
+                    Green: { text: "Green", class: "text-white bg-green-500 px-2 py-1 rounded" },
+                    Blue: { text: "Blue", class: "text-white bg-blue-500 px-2 py-1 rounded" },
+                    White: { text: "White", class: "text-black bg-gray-100 px-2 py-1 rounded" },
+                    Black: { text: "Black", class: "text-white bg-black px-2 py-1 rounded" },
+                    Pink: { text: "Pink", class: "text-white bg-pink-600 px-2 py-1 rounded" },
+                    Gray: { text: "Gray", class: "text-white bg-gray-600 px-2 py-1 rounded" },
+                    Yellow: { text: "Yellow", class: "text-white bg-yellow-500 px-2 py-1 rounded" },
+                    Sky: { text: "Sky", class: "text-white bg-sky-600 px-2 py-1 rounded" },
+                  };
+                  const colorInfo = item?.color && colorMap[item.color] || {
+                    text: item?.color || "Unknown",
+                    class: "text-gray-500",
+                  };
+
+                  return (
+                    <tr key={`${item.id}-${item.size}`} className="border-b dark:text-gray-300">
+                      <td className="border w-28  px-4 py-2 text-center">
+                        <RemoveFromCartButton id={item.id} size={item.size} />
+                      </td>
+                      <td className="border w-96  px-4 py-2">
+                        <Image src={item.image} alt={item.name} width={80} height={50} className="rounded-md" />
+                      </td>
+                      <td className="border w-96  px-4 py-2 font-bold">{item.name}</td>
+                      {/* ✅ Displaying the Color Name */}
+                      <td className="border w-48  px-4 py-2">
+                        <span className={`text-sm ${colorInfo.class}`}>{colorInfo.text}</span>
+                      </td>
+                      <td className="border w-32  px-4 py-2">{item.price} $</td>
+                      <td className="border w-28  px-4 py-2">{item.size}</td>
+                      <td className="border w-48  px-4 py-2 "> <span className=" py-2 px-2 rounded">{item.quantity}</span></td>
+                      <td className="border w-28  px-4 py-2 font-bold">
+                        {new Intl.NumberFormat("en-US").format(item.price * item.quantity)} $
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+
+          <div className=" text-right mt-2 text-lg font-bold dark:text-gray-300">
             Total:{" "}
-            {new Intl.NumberFormat("en-US", {
-            }).format(
-              cartItems.reduce(
-                (total, item) => total + item.price * item.quantity,
-                0
-              )
+            {new Intl.NumberFormat("en-US").format(
+              cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
             )}{" "}
             $
-          </p>
-        </div>
+          </div>
+          </>
       )}
     </div>
   );

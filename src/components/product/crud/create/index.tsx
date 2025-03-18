@@ -112,172 +112,172 @@ export default function ContactFormProduct({ product }: { product: Products }) {
   };
 
   return (
-      <div className="mt-8">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-4 p-4 border rounded"
-          >
-            <div>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <label className="block">
-                  <span className="text-gray-700">Upload Image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    {...register("image")}
-                    onChange={handleFileChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md text-black"
-                  />
-                </label>
-
-                {errors.image && (
-                  <p className="text-red-500">{errors.image.message}</p>
-                )}
-
-                {preview && (
-                  <div className="mt-4">
-                    <p className="text-black">Current Image:</p>
-                    <img src={preview} alt="Preview" className="w-24 h-16 " />
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="mt-2 -mx-3 flex flex-wrap ">
-              <div className="w-full px-3 sm:w-1/2">
-                <div className="mb-5">
-                  <label
-                    htmlFor="Product"
-                    className="block text-sm font-medium leading-5 text-gray-700"
-                  >
-                    Product name
-                  </label>
-                  <input
-                    {...register("name", { required: "Name is required" })}
-                    placeholder="Name"
-                    className="border p-2 w-full text-black border-sky-500 rounded-lg"
-                  />
-                  {errors.name && (
-                    <p className="text-red-500">{errors.name.message}</p>
-                  )}
-                </div>
-              </div>
-              <div className="w-full px-3 sm:w-1/2">
-                <div className="mb-5">
-                  <label
-                    htmlFor="price"
-                    className="block text-sm font-medium leading-5 text-gray-700"
-                  >
-                    Price
-                  </label>
-                  <input
-                    {...register("price", { required: "price is required" })}
-                    placeholder="Price"
-                    type="number"
-                    className="border p-2 w-full text-black border-sky-500 rounded-lg"
-                  />
-                  {errors.price && (
-                    <p className="text-red-500">{errors.price.message}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="">
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium leading-5 text-gray-700"
-              >
-                Description
-              </label>
-              <div className="mt-1 rounded-md shadow-sm">
-                <textarea
-                  id="description"
-                  {...register("description", {
-                    required: "description is required",
-                    minLength: 10,
-                  })}
-                  className="w-full p-2 border text-black border-sky-500 rounded-lg"
-                  rows="2"
-                  placeholder="Type your description..."
-                />
-                {errors.description?.message && (
-                  <p className="text-red-500">{errors.description.message}</p>
-                )}
-              </div>
-            </div>
-            <div className="mt-2">
-              <label
-                htmlFor="stock"
-                className="block text-sm font-medium leading-5 text-gray-700"
-              >
-                Stock
-              </label>
-              <div className="mt-1 rounded-lg shadow-sm">
+    <div className="mt-8">
+      <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4 p-4 border rounded"
+        >
+          <div>
+            <div className="mt-1 relative rounded-md shadow-sm">
+              <label className="block">
+                <span className="text-gray-700">Upload Image</span>
                 <input
-                  {...register("stock", { required: "stock is required" })}
-                  placeholder="Stock"
+                  type="file"
+                  accept="image/*"
+                  {...register("image")}
+                  onChange={handleFileChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md text-black"
+                />
+              </label>
+
+              {errors.image && (
+                <p className="text-red-500">{errors.image.message}</p>
+              )}
+
+              {preview && (
+                <div className="mt-4">
+                  <p className="text-black">Current Image:</p>
+                  <img src={preview} alt="Preview" className="w-24 h-16 " />
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="mt-2 -mx-3 flex flex-wrap ">
+            <div className="w-full px-3 sm:w-1/2">
+              <div className="mb-5">
+                <label
+                  htmlFor="Product"
+                  className="block text-sm font-medium leading-5 text-gray-700"
+                >
+                  Product name
+                </label>
+                <input
+                  {...register("name", { required: "Name is required" })}
+                  placeholder="Name"
+                  className="border p-2 w-full text-black border-sky-500 rounded-lg"
+                />
+                {errors.name && (
+                  <p className="text-red-500">{errors.name.message}</p>
+                )}
+              </div>
+            </div>
+            <div className="w-full px-3 sm:w-1/2">
+              <div className="mb-5">
+                <label
+                  htmlFor="price"
+                  className="block text-sm font-medium leading-5 text-gray-700"
+                >
+                  Price
+                </label>
+                <input
+                  {...register("price", { required: "price is required" })}
+                  placeholder="Price"
                   type="number"
                   className="border p-2 w-full text-black border-sky-500 rounded-lg"
                 />
-                {errors.stock && (
-                  <p className="text-red-500">{errors.stock.message}</p>
+                {errors.price && (
+                  <p className="text-red-500">{errors.price.message}</p>
                 )}
               </div>
             </div>
-            <div className=" mt-2 -mx-3 flex flex-wrap">
-              <div className="w-full px-3 sm:w-1/2">
-                <div className="mb-5">
-                  <label
-                    htmlFor="size"
-                    className="mb-3 block text-base font-medium text-[#07074D]"
-                  >
-                    Size
-                  </label>
-                  <select
-                    {...register("size", { required: true })}
-                    className="mt-1 block w-full border p-2  text-black border-sky-500 rounded-lg"
-                  >
-                    {choices_Size.map((choice) => (
-                      <option key={choice.value} value={choice.value}>
-                        {choice.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className="w-full px-3 sm:w-1/2">
-                <div className="mb-5">
-                  <label
-                    htmlFor="Colors"
-                    className="mb-3 block text-base font-medium text-[#07074D]"
-                  >
-                    Colors
-                  </label>
-                  <select
-                    {...register("color", { required: true })}
-                    className="mt-1 block w-full border p-2  text-black border-sky-500 rounded-lg"
-                  >
-                    {choices_Color.map((choice) => (
-                      <option key={choice.value} value={choice.value}>
-                        {choice.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+          </div>
+          <div className="">
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium leading-5 text-gray-700"
+            >
+              Description
+            </label>
+            <div className="mt-1 rounded-md shadow-sm">
+              <textarea
+                id="description"
+                {...register("description", {
+                  required: "description is required",
+                  minLength: 10,
+                })}
+                className="w-full p-2 border text-black border-sky-500 rounded-lg"
+                rows="2"
+                placeholder="Type your description..."
+              />
+              {errors.description?.message && (
+                <p className="text-red-500">{errors.description.message}</p>
+              )}
             </div>
-            <div className="">
-              <span className="block w-full rounded-md shadow-sm">
-                <button
-                  type="submit"
-                  className="bg-blue-500 hover:bg-green-400 text-black py-3 px-4 rounded"
+          </div>
+          <div className="mt-2">
+            <label
+              htmlFor="stock"
+              className="block text-sm font-medium leading-5 text-gray-700"
+            >
+              Stock
+            </label>
+            <div className="mt-1 rounded-lg shadow-sm">
+              <input
+                {...register("stock", { required: "stock is required" })}
+                placeholder="Stock"
+                type="number"
+                className="border p-2 w-full text-black border-sky-500 rounded-lg"
+              />
+              {errors.stock && (
+                <p className="text-red-500">{errors.stock.message}</p>
+              )}
+            </div>
+          </div>
+          <div className=" mt-2 -mx-3 flex flex-wrap">
+            <div className="w-full px-3 sm:w-1/2">
+              <div className="mb-5">
+                <label
+                  htmlFor="size"
+                  className="mb-3 block text-base font-medium text-[#07074D]"
                 >
-                  {loading ? "Creating..." : "Create Product"}
-                </button>
-              </span>
+                  Size
+                </label>
+                <select
+                  {...register("size", { required: true })}
+                  className="mt-1 block w-full border p-2  text-black border-sky-500 rounded-lg"
+                >
+                  {choices_Size.map((choice) => (
+                    <option key={choice.value} value={choice.value}>
+                      {choice.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </form>
-        </div>
+            <div className="w-full px-3 sm:w-1/2">
+              <div className="mb-5">
+                <label
+                  htmlFor="Colors"
+                  className="mb-3 block text-base font-medium text-[#07074D]"
+                >
+                  Colors
+                </label>
+                <select
+                  {...register("color", { required: true })}
+                  className="mt-1 block w-full border p-2  text-black border-sky-500 rounded-lg"
+                >
+                  {choices_Color.map((choice) => (
+                    <option key={choice.value} value={choice.value}>
+                      {choice.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+          <div className="">
+            <span className="block w-full rounded-md shadow-sm">
+              <button
+                type="submit"
+                className="bg-blue-500 hover:bg-green-400 text-black py-3 px-4 rounded"
+              >
+                {loading ? "Creating..." : "Create Product"}
+              </button>
+            </span>
+          </div>
+        </form>
       </div>
+    </div>
   );
 }

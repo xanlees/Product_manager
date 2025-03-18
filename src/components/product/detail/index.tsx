@@ -148,7 +148,7 @@ export default function ProductDetail() {
 
   const handleAddToCart = async () => {
     if (quantity < 1 || !selectedStock || quantity > selectedStock.stock) {
-      alert("This item is out of stock!");
+      alert("❌ This item is out of stock!");
       return;
     }
 
@@ -168,19 +168,18 @@ export default function ProductDetail() {
 
     try {
       // ✅ Reduce stock in backend
+      const formData = new FormData();
+      formData.append("color_name", selectedColor?.color_name || "");
+      formData.append("size", selectedSize || "");
+      formData.append("quantity", String(quantity));
+
+
+
       const response = await fetch(
         `http://localhost:8000/api/v1/products/${product.id}/reduce_stock/`,
         {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            color_name: selectedColor?.color_name,
-            size: selectedSize, // ✅ Correct key
-            quantity: quantity, // ✅ Correct key
-          }),
+          body: formData,
         }
       );
 
@@ -197,7 +196,7 @@ export default function ProductDetail() {
         console.log("Success:", jsonResponse);
         setShowAlert(true);
         setTimeout(() => {
-          setShowAlert(false);
+        setShowAlert(false);
         }, 3000);
       } catch (jsonError) {
         console.log("JSON Error:", jsonError)
@@ -210,12 +209,12 @@ export default function ProductDetail() {
         prevProduct
           ? {
             ...prevProduct,
-            color_variants: prevProduct.color_images.map((color) =>
+            color_images: prevProduct.color_images.map((color) =>
               color.color_name === selectedColor?.color_name
                 ? {
                   ...color,
                   stock_sizes: color.stock_sizes.map((s) =>
-                    s.size === selectedSize ? { ...s, stock: s.stock - quantity } : s
+                    s.size === selectedSize ? { ...s, stock: Math.max(0, s.stock - quantity) } : s
                   ),
                 }
                 : color

@@ -6,8 +6,8 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { CartProvider } from "@/components/contexts/cartContext";
 import { NavbarProvider } from "@/components/ui/navbar";
-import { ThemeProvider } from "./providers";
 import { AppNavbar } from "@/components/app-navbar";
+import { ThemeProvider } from "@/app/providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,7 +35,7 @@ export default function RootLayout({
             <NavbarProvider>
               <AppNavbar />
               <main className=" flex min-h-screen flex-col w-full px-4 md:px-8 lg:px-16">
-              {children}
+                {children}
               </main>
             </NavbarProvider>
           </CartProvider>

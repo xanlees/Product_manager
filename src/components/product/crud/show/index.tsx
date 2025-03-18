@@ -1,187 +1,133 @@
 "use client";
 
-import { useProductStore } from "../../data/product";
-import { useState } from "react";
-import { useCart } from "../../../contexts/cartContext";
+import { useEffect, useState } from "react";
+import { ColorImage, useProductStore } from "../../data/product";
 import Image from "next/image";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function ProductReview() {
   const product = useProductStore((state) => state.selectedProduct);
-  const { addToCart, cartItems } = useCart();
-  const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<ColorImage | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string>("");
 
-  const colorMap: Record<string, { text: string; class: string }> = {
-    RED: { text: "Red", class: "text-red-500" },
-    GRN: { text: "Green", class: "text-green-500" },
-    BLU: { text: "Blue", class: "text-blue-500" },
+
+  useEffect(() => {
+    setSelectedColor(product?.color_images?.[0] || null);
+
+    const defaultColor = product?.color_images?.[0] || null;
+    if (defaultColor && defaultColor.stock_sizes.length > 0) {
+      setSelectedSize(defaultColor.stock_sizes[0].size);
+    }
+  }, [product]);
+
+  const selectedStock = selectedColor?.stock_sizes.find(
+    (stock) => stock.size === selectedSize
+  );
+
+  const handleColorChange = (color: ColorImage) => {
+    setSelectedColor(color);
+    setSelectedImage(color.image);
+
   };
 
-  const colorInfo = colorMap[product?.color || ""] || {
-    text: product?.color || "Unknown",
-    class: "text-gray-500",
-  };
+
+  // const colorMap: Record<string, { text: string; class: string }> = {
+  //   RED: { text: "Red", class: "text-red-500" },
+  //   GRN: { text: "Green", class: "text-green-500" },
+  //   BLU: { text: "Blue", class: "text-blue-500" },
+  // };
+
+  // const colorInfo = colorMap[product?.color || ""] || {
+  //   text: product?.color || "Unknown",
+  //   class: "text-gray-500",
+  // };
 
   if (!product) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen text-center text-black">
+      <div className="flex flex-col items-center justify-center h-screen text-center">
         <h1 className="text-2xl font-bold">No Product Selected</h1>
         <p className="text-lg mt-2">Please select a product to review.</p>
       </div>
     );
   }
 
-  const handleAddToCart = async () => {
-    if (quantity < 1 || quantity > product.stock) {
-      alert("Invalid quantity!");
-      return;
-    }
-
-    setLoading(true);
-
-    // ✅ Check if the product is already in the cart
-    const existingItem = cartItems.find((item) => item.id === product.id);
-    if (existingItem) {
-      alert("This item is already in the cart!");
-      setLoading(false);
-      return;
-    }
-
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price * quantity, // ✅ Total price calculation
-      quantity,
-      color: product.color,
-      size: product.size,
-      image: product.image,
-    };
-
-    try {
-      // ✅ Save to local cart
-      addToCart(cartItem);
-
-      // ✅ Update stock in the backend
-      const stockUpdateResponse = await fetch(
-        `http://localhost:8000/api/v1/products/${product.id}/reduce_stock/`,
-        {
-          method: "PATCH", // ✅ Use PATCH to update stock
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({ stock: quantity }), // Reduce stock
-        }
-      );
-
-      if (!stockUpdateResponse.ok) {
-        throw new Error("Failed to update stock");
-      }
-
-      alert("Product added to cart successfully!");
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      alert("Error adding to cart");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <>
-      <section className=" min-h-[calc(100vh-4rem)] flex justify-center items-center">
-        <div className=" grid max-w-full gap-4 p-4 md:grid-cols-1 lg:max-w-96 lg:max-h-96 ">
-          <article className=" py-7 px-10 rounded-xl p-3 shadow-lg hover:shadow-xl hover:transform hover:scale-105 duration-300">
-            <a href="#">
-              <div className="relative flex overflow-hidden rounded-xl justify-center items-center">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  width={140}
-                  height={100}
-                />
-              </div>
-              <div className="mt-10 p-2 ">
-                <div className=" ">
-                  <h2 className="text-slate-700 text-4xl font-bold">
-                    {product.name}
-                  </h2>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-4 items-end">
-                  <div className="w-1/2">
-                    <p>
-                      <span className="text-lg font-bold text-blue-500">
-                        {product.price} ₭
-                      </span>
-                    </p>
-                  </div>
-                  <div className="w-1/2">
-                    <p>
+      <section className="min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center">
+        <Card className="max-w-4xl w-full p-6 rounded-xl shadow-lg">
+          <CardHeader className=" realative flex flex-col justify-center items-center">
+            <Image
+              src={product.image}
+              alt={product.name}
+              width={300}
+              height={150}
+              className="rounded-xl"
+            />
+            
+            
+            <CardTitle className="text-center text-2xl mt-4">{product.name}</CardTitle>
+            <CardDescription className="text-center text-gray-600">
+              {product.description}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <div className=" flex flex-col justify-center items-center space-y-4">
+              {/* Price */}
+              <p className="text-xl font-bold text-gray-600">{product.price} $</p>
+              <div className="flex justify-center">
+                <div className=" flex gap-2 flex-wrap justify-center ">
+                  {product.color_images.length > 0 ? (
+                    product.color_images.map((color) => (
                       <span
-                        className={`text-sm font-bold ${
-                          product.size === "S"
-                            ? "text-gray-500"
-                            : product.size === "M"
-                            ? "text-blue-500"
-                            : "text-orange-500"
-                        }`}
+                        key={color.id || color.color_name}
+                        onClick={() => handleColorChange(color)}
+                        className={`w-16 h-16 rounded border-2 cursor-pointer hover:border-gray-600 ${selectedColor?.id === color.id ? "border-gray-200" : "border-gray-300"
+                          }`}
                       >
-                        {product.size}
+                        <Image 
+                          src={color.image}
+                          alt={color.color_name}
+                          width={40}
+                          height={40}
+                          className="object-cover w-full h-full rounded"
+                        />
                       </span>
-                    </p>
-                  </div>
-                  <div className="w-1/2">
-                    <p>
-                      <span className={`text-sm font-bold ${colorInfo.class}`}>
-                        {colorInfo.text}
-                      </span>
-                    </p>
-                  </div>
-                  <div className="w-1/2">
-                    <p>
-                      <span className="text-sm font-bold text-blue-500">
-                        Stock:{" "}
-                        {product.stock > 0 ? product.stock : "Out of Stock"}
-                      </span>
-                    </p>
-                  </div>
-                  <div className="w-full flex flex-col items-center mt-4">
-                    <label className="text-sm font-medium text-gray-700">
-                      Quantity:
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max={product.stock}
-                      value={quantity}
-                      onChange={(e) => setQuantity(Number(e.target.value))}
-                      className="w-16 text-center border rounded-md px-2 py-1 text-gray-700"
-                    />
-                  </div>
-                  <div className="w-full flex justify-center mt-4">
-                    <button
-                      onClick={handleAddToCart}
-                      disabled={product.stock === 0 || loading} // ✅ Disable button if stock is 0
-                      className={`px-4 py-2 text-white ${
-                        product.stock === 0
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-blue-500 hover:bg-blue-600"
-                      }`}
-                    >
-                      <span>
-                        {loading
-                          ? "Adding..."
-                          : product.stock === 0
-                          ? "Out of Stock"
-                          : "Add to Cart"}
-                      </span>
-                    </button>
-                  </div>
+                    ))
+                  ) : (
+                    <p className="text-red-500">No colors available</p>
+                  )}
                 </div>
               </div>
-            </a>
-          </article>
-        </div>
+              {/* Size Options */}
+              <div className="flex gap-2">
+                {selectedColor?.stock_sizes.length > 0 ? (
+                  selectedColor.stock_sizes.map((stock) => (
+                    <button
+                      key={stock.id || stock.size}
+                      onClick={() => setSelectedSize(stock.size)}
+                      className={`px-4 py-2 border rounded-md cursor-pointer ${selectedSize === stock.size ? "bg-gray-800 text-white" : "bg-gray-200 text-gray-700"
+                        } hover:bg-gray-400 hover:text-white`}
+                    >
+                      {stock.size}
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-red-500">No sizes available</p>
+                )}
+              </div>
+
+              {/* Stock Information */}
+              <p className="text-gray-700">
+                Stock:{" "}
+                <span className={selectedStock?.stock === 0 ? "text-red-600" : "text-green-600"}>
+                  {selectedStock?.stock || 0} {selectedStock?.stock === 1 ? "left" : "available"}
+                </span>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </section>
     </>
   );

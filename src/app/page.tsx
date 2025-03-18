@@ -13,11 +13,57 @@ import {
 import { Products } from "@/components/product/data/product";
 import { fetchProduct } from "@/components/product/services/api";
 
-export default function Page() {
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+
+const SHEET_SIDES = ["left"] as const
+
+type HomepageSide = (typeof SHEET_SIDES)[number]
+
+import { Button } from "@/components/ui/button";
+import { ArrowDown, ArrowUp, Check, SlidersHorizontal } from "lucide-react";
+
+const colorMap: Record<string, { text: string; class: string }> = {
+  Red: { text: "Red", class: "text-white bg-red-500 px-2 py-1 rounded-full" },
+  Green: { text: "Green", class: "text-white bg-green-500 px-2 py-1 rounded-full" },
+  Blue: { text: "Blue", class: "text-white bg-blue-500 px-2 py-1 rounded-full" },
+  White: { text: "White", class: " bg-white-100 px-2 py-1 rounded-full dark:bg-gray-50" },
+  Black: { text: "Black", class: "text-white bg-black px-2 py-1 rounded-full" },
+  Pink: { text: "Pink", class: "text-white bg-pink-600 px-2 py-1 rounded-full" },
+  Gray: { text: "Gray", class: "text-white bg-gray-600 px-2 py-1 rounded-full" },
+  Yellow: { text: "Yellow", class: "text-white bg-yellow-500 px-2 py-1 rounded-full" },
+  Sky: { text: "Sky", class: "text-white bg-sky-600 px-2 py-1 rounded-full" },
+  Brown: { text: "Brown", class: " text-white bg-yellow-900 px-2 py-1 rounded-full" },
+};
+
+
+export default function HomepageSide() {
   const [products, setProducts] = useState<Products[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
   const [hoveredColors, setHoveredColors] = useState<{ [key: number]: string | null }>({});
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string[]>([]);;
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -34,17 +80,114 @@ export default function Page() {
     loadProducts();
   }, []);
 
+  const handleColorToggle = (color: string) => {
+    setSelectedColor((prevSelected) =>
+      prevSelected.includes(color)
+        ? prevSelected.filter((c) => c !== color) // ✅ Remove if already selected
+        : [...prevSelected, color] // ✅ Add if not selected
+    );
+  };
+
+  const filteredAndSortedProducts = [...products]
+    .filter((product) =>
+      selectedColor.length > 0 // ✅ Check if any color is selected
+        ? product.color_images.some((color) => selectedColor.includes(color.color_name))
+        : true // ✅ Show all products if no color is selected
+    )
+    .sort((a, b) => {
+      if (sortOrder === "asc") return a.price - b.price; // Low to High
+      if (sortOrder === "desc") return b.price - a.price; // High to Low
+      return 0; // Default (No Sorting)
+    });
+
   if (loading) {
     return <p className="text-center text-gray-500">Loading products...</p>;
   }
 
+ 
   return (
     <div className="py-36">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
-        {products.length === 0 ? (
-          <p className="text-center text-gray-500">No products available.</p>
+      <div className=" flex absolute right-64 top-20">
+        {SHEET_SIDES.map((side) => (
+          <Sheet key={side}>
+            <SheetTrigger asChild>
+              <span className=" flex cursor-pointer gap-2"> Filters  <SlidersHorizontal className=" mt-1 w-4 h-4"/></span>
+            </SheetTrigger>
+            <SheetContent side={side}>
+              <SheetHeader>
+                <SheetTitle>Filter Products</SheetTitle> {/* ✅ Added this for accessibility */}
+                <SheetDescription>Select and filter products</SheetDescription>
+              </SheetHeader>
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="item-1">
+                  <AccordionTrigger>Choose a Color {selectedColor.length > 0 && ` (${selectedColor.length})`}</AccordionTrigger>
+                    <AccordionContent>
+                    <div className="grid grid-cols-3 gap-1">
+                      {Object.keys(colorMap).map((color) => (
+                        <Button
+                          key={color}
+                          variant={selectedColor.includes(color) ? "default" : "outline"}
+                          onClick={() => handleColorToggle(color)}
+                          className={`relative flex items-center justify-center gap-2 ${colorMap[color]?.class || "bg-gray-200 text-black"}`}
+                        >
+                          {color}
+
+                          {/* ✅ Show ✓ icon if this color is selected */}
+                          {selectedColor.includes(color) && <Check className="w-4 h-4 ml-1" />}
+                        </Button>
+                      ))}
+                    </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+            </SheetContent>
+          </Sheet>
+        ))}
+      </div>
+      <div className=" flex absolute right-16 top-20">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <span 
+               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+               className="flex items-center cursor-pointer"
+            >
+              Short By:
+              {sortOrder === "asc" ? (
+                <>
+                  <ArrowDown className="inline-block w-4 h-4 mr-1 " />
+                  <p className=" text-gray-400">Low-High</p>
+              
+                </>
+              ) : (
+                <>
+                  <ArrowUp className="inline-block w-4 h-4 mr-1 " />
+                    <p className=" text-gray-400">High-Low</p>
+                </>
+              )}
+            </span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            <DropdownMenuCheckboxItem
+              checked={sortOrder === "asc"}
+              onCheckedChange={() => setSortOrder("asc")}
+            >
+              <span className=" cursor-pointer">Price: Low-Hight</span>
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={sortOrder === "desc"}
+              onCheckedChange={() => setSortOrder("desc")}
+            >
+              <span className=" cursor-pointer">Price: Hight-Low</span>
+
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+        {filteredAndSortedProducts.length === 0 ? (
+          <p className=" absolute top-1/2 left-1/2 text-center text-gray-400">No products available........</p>
         ) : (
-          products.map((product) => {
+            filteredAndSortedProducts.map((product) => {
             const selectedColorImage =
               hoveredColors[product.id] ||
               product.color_images[0]?.image ||
